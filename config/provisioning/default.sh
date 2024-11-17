@@ -91,11 +91,11 @@ function provisioning_start() {
     
     # Clone the Panchovix reForge repository
     if [[ ! -d /opt/stable-diffusion-webui-reForge ]]; then
-        printf "Cloning Panchovix reForge repository...\n"
-        git clone https://github.com/Panchovix/stable-diffusion-webui-reForge /opt/stable-diffusion-webui-reForge --recursive
+        printf "Cloning Panchovix reForge repository (dev branch)...\n"
+        git clone --branch dev https://github.com/Panchovix/stable-diffusion-webui-reForge /opt/stable-diffusion-webui-reForge --recursive
     else
-        printf "Updating Panchovix reForge repository...\n"
-        ( cd /opt/stable-diffusion-webui-reForge && git pull )
+        printf "Updating Panchovix reForge repository to dev branch...\n"
+        ( cd /opt/stable-diffusion-webui-reForge && git fetch && git checkout dev && git pull )
     fi
 
     # Start and exit because webui will probably require a restart
