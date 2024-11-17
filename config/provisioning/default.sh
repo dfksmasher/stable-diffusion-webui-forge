@@ -48,11 +48,10 @@ CONTROLNET_MODELS=(
     "https://huggingface.co/lllyasviel/sd_control_collection/resolve/main/t2i-adapter_diffusers_xl_openpose.safetensors"
 )
 
-
 ### DO NOT EDIT BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING ###
 
 function provisioning_start() {
-    # We need to apply some workarounds to make old builds work with the new default
+    # Apply workarounds for older builds
     if [[ ! -d /opt/environments/python ]]; then 
         export MAMBA_BASE=true
     fi
@@ -89,22 +88,25 @@ function provisioning_start() {
     PROVISIONING_ARGS="--skip-python-version-check --no-download-sd-model --do-not-download-clip --port 11404 --exit"
     ARGS_COMBINED="${PLATFORM_ARGS} $(cat /etc/forge_args.conf) ${PROVISIONING_ARGS}"
     
-    # Clone the Panchovix reForge repository
+    # Clone or update the Panchovix reForge repository to the dev branch
     if [[ ! -d /opt/stable-diffusion-webui-reForge ]]; then
         printf "Cloning Panchovix reForge repository (dev branch)...\n"
         git clone --branch dev https://github.com/Panchovix/stable-diffusion-webui-reForge /opt/stable-diffusion-webui-reForge --recursive
     else
         printf "Updating Panchovix reForge repository to dev branch...\n"
-        ( cd /opt/stable-diffusion-webui-reForge && git fetch && git checkout dev && git pull )
+        (
+            cd /opt/stable-diffusion-webui-reForge
+            git fetch --all
+            git checkout dev
+            git pull origin dev
+        )
     fi
 
     # Start and exit because webui will probably require a restart
     cd /opt/stable-diffusion-webui-reForge
-        source "$FORGE_VENV/bin/activate"
-        LD_PRELOAD=libtcmalloc.so python launch.py \
-            ${ARGS_COMBINED}
-        deactivate
-
+    source "$FORGE_VENV/bin/activate"
+    LD_PRELOAD=libtcmalloc.so python launch.py ${ARGS_COMBINED}
+    deactivate
 
     provisioning_print_end
 }
@@ -115,13 +117,13 @@ function pip_install() {
 
 function provisioning_get_apt_packages() {
     if [[ -n $APT_PACKAGES ]]; then
-            sudo $APT_INSTALL ${APT_PACKAGES[@]}
+        sudo $APT_INSTALL ${APT_PACKAGES[@]}
     fi
 }
 
 function provisioning_get_pip_packages() {
     if [[ -n $PIP_PACKAGES ]]; then
-            pip_install ${PIP_PACKAGES[@]}
+        pip_install ${PIP_PACKAGES[@]}
     fi
 }
 
@@ -173,16 +175,14 @@ function provisioning_print_end() {
     printf "\nProvisioning complete: Web UI will start now\n\n"
 }
 
-
 # Download from $1 URL to $2 file path
 function provisioning_download() {
     if [[ -n $HF_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\.)?huggingface\.co(/|$|\?) ]]; then
         auth_token="$HF_TOKEN"
-    elif 
-        [[ -n $CIVITAI_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\.)?civitai\.com(/|$|\?) ]]; then
+    elif [[ -n $CIVITAI_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\.)?civitai\.com(/|$|\?) ]]; then
         auth_token="$CIVITAI_TOKEN"
     fi
-    if [[ -n $auth_token ]];then
+    if [[ -n $auth_token ]]; then
         wget --header="Authorization: Bearer $auth_token" -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$2" "$1"
     else
         wget -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$2" "$1"
