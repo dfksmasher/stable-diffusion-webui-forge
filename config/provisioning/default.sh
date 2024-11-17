@@ -19,12 +19,11 @@ PIP_PACKAGES=(
 )
 
 EXTENSIONS=(
-    "https://github.com/deforum-art/sd-webui-deforum"
-    "https://github.com/adieyal/sd-dynamic-prompts"
-    "https://github.com/ototadana/sd-face-editor"
+    "https://github.com/DominikDoom/a1111-sd-webui-tagcomplete"
+    "https://github.com/ArtVentureX/sd-webui-agent-scheduler"
+    "https://github.com/dfksmasher/sd-webui-ar"
+    "https://github.com/dfksmasher/sd-dynamic-prompts"
     "https://github.com/AlUlkesh/stable-diffusion-webui-images-browser"
-    "https://github.com/hako-mikan/sd-webui-regional-prompter"
-    "https://github.com/Coyote-A/ultimate-upscale-for-automatic1111"
 )
 
 CHECKPOINT_MODELS=(
